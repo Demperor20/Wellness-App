@@ -59,6 +59,12 @@ service cloud.firestore {
           (request.auth.token.email == "ayubayohanna688@gmail.com" && request.auth.token.email_verified == true));
     }
 
+    function isValidUsage(data) {
+      return data.userId == request.auth.uid &&
+             data.date is string &&
+             data.date.matches("^\\d{4}-\\d{2}-\\d{2}$");
+    }
+
     // ===============================================================
     // Rules
     // ===============================================================
@@ -69,6 +75,17 @@ service cloud.firestore {
       allow update: if isOwner(userId) && isValidUser(request.resource.data) && 
                     request.resource.data.uid == resource.data.uid &&
                     request.resource.data.createdAt == resource.data.createdAt;
+      allow delete: if isAdmin();
+    }
+
+    match /usage_stats/{statId} {
+      allow read: if isAuthenticated() && (resource == null || resource.data.userId == request.auth.uid);
+      allow create: if isAuthenticated() && 
+                     request.resource.data.userId == request.auth.uid &&
+                     isValidUsage(request.resource.data);
+      allow update: if isAuthenticated() && 
+                     resource.data.userId == request.auth.uid &&
+                     isValidUsage(request.resource.data);
       allow delete: if isAdmin();
     }
 

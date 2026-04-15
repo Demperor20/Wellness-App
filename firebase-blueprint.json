@@ -44,12 +44,30 @@
         "createdAt": { "type": "string", "format": "date-time" }
       },
       "required": ["uid", "email", "onboardingComplete"]
+    },
+    "usage_stats": {
+      "title": "Usage Stats",
+      "description": "Daily social media usage statistics per user.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "date": { "type": "string", "format": "date" },
+        "facebook": { "type": "number", "default": 0 },
+        "instagram": { "type": "number", "default": 0 },
+        "twitter": { "type": "number", "default": 0 },
+        "whatsapp": { "type": "number", "default": 0 }
+      },
+      "required": ["userId", "date"]
     }
   },
   "firestore": {
     "/users/{userId}": {
       "schema": "users",
       "description": "User profile documents"
+    },
+    "/usage_stats/{statId}": {
+      "schema": "usage_stats",
+      "description": "Daily usage statistics"
     }
   }
 }

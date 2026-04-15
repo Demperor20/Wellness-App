@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "motion/react";
 import { 
   LineChart, 
@@ -31,6 +31,8 @@ import {
   Plus,
   Minus
 } from "lucide-react";
+import { onSnapshot, doc, setDoc } from "firebase/firestore";
+import { db, OperationType, handleFirestoreError } from "../lib/firebase";
 import { useAuth } from "../lib/AuthContext";
 import { useStreakTimer } from "../lib/StreakTimerContext";
 import WorkEngine from "./WorkEngine";
@@ -55,25 +57,64 @@ const stats = [
   { label: "Vitality Score", value: "94", trend: "+8", icon: TrendingUp, color: "text-brand-500", bg: "bg-brand-50" },
 ];
 
+const APP_PACKAGE_MAP = {
+  facebook: 'facebook',
+  instagram: 'instagram',
+  twitter: 'twitter',
+  whatsapp: 'whatsapp'
+};
+
 export default function DashboardOverview() {
   const { user, profile, updateProfile } = useAuth();
   const { timeLeft, mode, isActive, progress, startTimer, stopTimer, formatTime, completedGoals, toggleGoalCompletion } = useStreakTimer();
   const [showSummary, setShowSummary] = useState(false);
+  const [externalUsage, setExternalUsage] = useState<any>({});
 
   const socialUsage = profile?.streakSettings?.socialUsage || { facebook: 0, instagram: 0, twitter: 0, whatsapp: 0 };
   const socialConnections = profile?.streakSettings?.socialConnections || {};
 
-  const updateSocialTime = async (platform: string, delta: number) => {
-    const newTime = Math.max(0, (socialUsage[platform as keyof typeof socialUsage] || 0) + delta);
-    await updateProfile({
-      streakSettings: {
-        ...profile.streakSettings,
-        socialUsage: {
-          ...socialUsage,
-          [platform]: newTime
-        }
+  // Listen for external usage stats from Android service
+  useEffect(() => {
+    if (!user) return;
+
+    const now = new Date();
+    const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    const statId = `${user.uid}_${today}`;
+    const path = `usage_stats/${statId}`;
+    const docRef = doc(db, 'usage_stats', statId);
+
+    const unsubscribe = onSnapshot(docRef, (snapshot) => {
+      if (snapshot.exists()) {
+        setExternalUsage(snapshot.data());
       }
+    }, (error) => {
+      handleFirestoreError(error, OperationType.GET, path);
     });
+
+    return () => unsubscribe();
+  }, [user]);
+
+  const updateSocialTime = async (platform: string, delta: number) => {
+    if (!user) return;
+    
+    const now = new Date();
+    const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    const statId = `${user.uid}_${today}`;
+    const pkgName = APP_PACKAGE_MAP[platform as keyof typeof APP_PACKAGE_MAP];
+    
+    const currentExternal = externalUsage[pkgName] || 0;
+    const newTime = Math.max(0, currentExternal + delta);
+    
+    const path = `usage_stats/${statId}`;
+    try {
+      await setDoc(doc(db, 'usage_stats', statId), {
+        userId: user.uid,
+        date: today,
+        [pkgName]: newTime
+      }, { merge: true });
+    } catch (error) {
+      handleFirestoreError(error, OperationType.WRITE, path);
+    }
   };
 
   if (mode === 'transition') return <TransitionView />;
@@ -374,7 +415,8 @@ export default function DashboardOverview() {
               { id: 'whatsapp', label: 'WhatsApp', icon: MessageCircle, color: 'text-green-500', bg: 'bg-green-50' },
             ].map((platform) => {
               const isConnected = socialConnections[platform.id];
-              const time = socialUsage[platform.id as keyof typeof socialUsage] || 0;
+              const pkgName = APP_PACKAGE_MAP[platform.id as keyof typeof APP_PACKAGE_MAP];
+              const time = externalUsage[pkgName] || 0;
               
               return (
                 <div key={platform.id} className={`p-4 rounded-2xl border transition-all ${isConnected ? 'bg-white border-brand-100' : 'bg-brand-50/50 border-transparent opacity-50 grayscale'}`}>
