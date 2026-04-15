@@ -42,6 +42,13 @@ service cloud.firestore {
              data.onboardingComplete is bool &&
              data.createdAt is timestamp &&
              (!('vitalityGoal' in data) || data.vitalityGoal in ['longevity', 'performance', 'balance']) &&
+             (!('streakSettings' in data) || (
+               data.streakSettings is map &&
+               data.streakSettings.workModeHours is number &&
+               data.streakSettings.personalModeHours is number &&
+               data.streakSettings.workGoals is list &&
+               data.streakSettings.personalGoals is list
+             )) &&
              (!('displayName' in data) || (data.displayName is string && data.displayName.size() < 100)) &&
              (!('photoURL' in data) || (data.photoURL is string && data.photoURL.size() < 500));
     }

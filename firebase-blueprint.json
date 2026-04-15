@@ -11,6 +11,15 @@
         "photoURL": { "type": "string" },
         "onboardingComplete": { "type": "boolean" },
         "vitalityGoal": { "type": "string", "enum": ["longevity", "performance", "balance"] },
+        "streakSettings": {
+          "type": "object",
+          "properties": {
+            "workModeHours": { "type": "number", "description": "Hours dedicated to work mode (default 8)" },
+            "personalModeHours": { "type": "number", "description": "Hours dedicated to personal/family/leisure (default 8)" },
+            "workGoals": { "type": "array", "items": { "type": "string" } },
+            "personalGoals": { "type": "array", "items": { "type": "string" } }
+          }
+        },
         "createdAt": { "type": "string", "format": "date-time" }
       },
       "required": ["uid", "email", "onboardingComplete"]

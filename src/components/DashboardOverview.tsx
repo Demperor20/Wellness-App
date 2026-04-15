@@ -86,70 +86,127 @@ export default function DashboardOverview() {
 
       {/* Charts Section */}
       <div className="grid lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 bg-white p-8 rounded-[3rem] border border-brand-200 shadow-sm">
-          <div className="flex justify-between items-center mb-8">
-            <h3 className="text-xl font-serif text-brand-500">Vitality Trend</h3>
-            <div className="flex gap-4">
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-brand-500" />
-                <span className="text-[10px] font-bold uppercase tracking-widest text-brand-400">Score</span>
+        <div className="lg:col-span-2 space-y-8">
+          {/* Vitality Trend Chart */}
+          <div className="bg-white p-8 rounded-[3rem] border border-brand-200 shadow-sm">
+            <div className="flex justify-between items-center mb-8">
+              <h3 className="text-xl font-serif text-brand-500">Vitality Trend</h3>
+              <div className="flex gap-4">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-brand-500" />
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-brand-400">Score</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-brand-300" />
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-brand-400">Recovery</span>
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-brand-300" />
-                <span className="text-[10px] font-bold uppercase tracking-widest text-brand-400">Recovery</span>
+            </div>
+            <div className="h-[300px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={data}>
+                  <defs>
+                    <linearGradient id="colorScore" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#5d6d53" stopOpacity={0.1}/>
+                      <stop offset="95%" stopColor="#5d6d53" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
+                  <XAxis 
+                    dataKey="name" 
+                    axisLine={false} 
+                    tickLine={false} 
+                    tick={{ fontSize: 10, fill: '#a4ad95', fontWeight: 700 }}
+                    dy={10}
+                  />
+                  <YAxis hide />
+                  <Tooltip 
+                    contentStyle={{ 
+                      borderRadius: '16px', 
+                      border: 'none', 
+                      boxShadow: '0 10px 30px rgba(0,0,0,0.1)',
+                      fontSize: '12px',
+                      fontWeight: 'bold',
+                      textTransform: 'uppercase'
+                    }} 
+                  />
+                  <Area 
+                    type="monotone" 
+                    dataKey="score" 
+                    stroke="#5d6d53" 
+                    strokeWidth={3}
+                    fillOpacity={1} 
+                    fill="url(#colorScore)" 
+                  />
+                  <Area 
+                    type="monotone" 
+                    dataKey="recovery" 
+                    stroke="#d1b894" 
+                    strokeWidth={2}
+                    strokeDasharray="5 5"
+                    fill="transparent" 
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          {/* 16-Hour Streak Progress */}
+          <div className="bg-white p-8 rounded-[3rem] border border-brand-200 shadow-sm">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-xl font-serif text-brand-500">16-Hour Streak</h3>
+              <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-brand-400">8h Work + 8h Personal</span>
+            </div>
+            
+            <div className="relative h-12 bg-brand-100 rounded-2xl overflow-hidden flex">
+              <motion.div 
+                initial={{ width: 0 }}
+                animate={{ width: '50%' }}
+                className="h-full bg-brand-500 relative group"
+              >
+                <div className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-brand-50 uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">
+                  Work Mode (8h)
+                </div>
+              </motion.div>
+              <motion.div 
+                initial={{ width: 0 }}
+                animate={{ width: '50%' }}
+                className="h-full bg-brand-300 relative group"
+              >
+                <div className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-brand-50 uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">
+                  Personal Mode (8h)
+                </div>
+              </motion.div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-8 mt-8">
+              <div>
+                <div className="text-[10px] font-bold uppercase tracking-widest text-brand-400 mb-3">Work Goals</div>
+                <div className="space-y-2">
+                  {(profile?.streakSettings?.workGoals || ["Deep Work", "Strategic Planning"]).slice(0, 2).map((goal: string, i: number) => (
+                    <div key={i} className="flex items-center gap-3 text-xs text-brand-950 font-medium">
+                      <div className="w-1.5 h-1.5 rounded-full bg-brand-500" />
+                      {goal}
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <div className="text-[10px] font-bold uppercase tracking-widest text-brand-400 mb-3">Personal Goals</div>
+                <div className="space-y-2">
+                  {(profile?.streakSettings?.personalGoals || ["Family Dinner", "30m Reading"]).slice(0, 2).map((goal: string, i: number) => (
+                    <div key={i} className="flex items-center gap-3 text-xs text-brand-950 font-medium">
+                      <div className="w-1.5 h-1.5 rounded-full bg-brand-300" />
+                      {goal}
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
-          <div className="h-[300px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={data}>
-                <defs>
-                  <linearGradient id="colorScore" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#5d6d53" stopOpacity={0.1}/>
-                    <stop offset="95%" stopColor="#5d6d53" stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
-                <XAxis 
-                  dataKey="name" 
-                  axisLine={false} 
-                  tickLine={false} 
-                  tick={{ fontSize: 10, fill: '#a4ad95', fontWeight: 700 }}
-                  dy={10}
-                />
-                <YAxis hide />
-                <Tooltip 
-                  contentStyle={{ 
-                    borderRadius: '16px', 
-                    border: 'none', 
-                    boxShadow: '0 10px 30px rgba(0,0,0,0.1)',
-                    fontSize: '12px',
-                    fontWeight: 'bold',
-                    textTransform: 'uppercase'
-                  }} 
-                />
-                <Area 
-                  type="monotone" 
-                  dataKey="score" 
-                  stroke="#5d6d53" 
-                  strokeWidth={3}
-                  fillOpacity={1} 
-                  fill="url(#colorScore)" 
-                />
-                <Area 
-                  type="monotone" 
-                  dataKey="recovery" 
-                  stroke="#d1b894" 
-                  strokeWidth={2}
-                  strokeDasharray="5 5"
-                  fill="transparent" 
-                />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
         </div>
 
-        <div className="bg-brand-500 p-8 rounded-[3rem] text-brand-50 relative overflow-hidden">
+        <div className="bg-brand-500 p-8 rounded-[3rem] text-brand-50 relative overflow-hidden h-fit">
           <div className="relative z-10">
             <h3 className="text-xl font-serif mb-6">Today's Protocol</h3>
             <div className="space-y-4">

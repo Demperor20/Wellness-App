@@ -2,6 +2,7 @@ import { useState } from "react";
 import { motion } from "motion/react";
 import Sidebar from "./Sidebar";
 import DashboardOverview from "./DashboardOverview";
+import Settings from "./Settings";
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState("overview");
@@ -23,11 +24,7 @@ export default function Dashboard() {
               Personalized Protocols Coming Soon
             </div>
           )}
-          {activeTab === "settings" && (
-            <div className="flex items-center justify-center h-[60vh] text-brand-950/30 font-serif text-2xl">
-              Account Settings Coming Soon
-            </div>
-          )}
+          {activeTab === "settings" && <Settings />}
         </div>
       </main>
     </div>

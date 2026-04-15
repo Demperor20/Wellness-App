@@ -10,6 +10,7 @@ interface AuthContextType {
   signInWithGoogle: () => Promise<void>;
   logout: () => Promise<void>;
   completeOnboarding: (goal: string) => Promise<void>;
+  updateStreakSettings: (settings: any) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -80,8 +81,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const updateStreakSettings = async (settings: any) => {
+    if (!user || !profile) return;
+    const path = `users/${user.uid}`;
+    try {
+      const updatedProfile = {
+        ...profile,
+        streakSettings: settings,
+      };
+      await setDoc(doc(db, 'users', user.uid), updatedProfile);
+      setProfile(updatedProfile);
+    } catch (error) {
+      handleFirestoreError(error, OperationType.WRITE, path);
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, profile, loading, signInWithGoogle, logout, completeOnboarding }}>
+    <AuthContext.Provider value={{ user, profile, loading, signInWithGoogle, logout, completeOnboarding, updateStreakSettings }}>
       {children}
     </AuthContext.Provider>
   );
