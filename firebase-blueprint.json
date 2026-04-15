@@ -14,10 +14,13 @@
         "streakSettings": {
           "type": "object",
           "properties": {
-            "workModeHours": { "type": "number", "description": "Hours dedicated to work mode (default 8)" },
-            "personalModeHours": { "type": "number", "description": "Hours dedicated to personal/family/leisure (default 8)" },
+            "workModeHours": { "type": "number" },
+            "personalModeHours": { "type": "number" },
             "workGoals": { "type": "array", "items": { "type": "string" } },
-            "personalGoals": { "type": "array", "items": { "type": "string" } }
+            "personalGoals": { "type": "array", "items": { "type": "string" } },
+            "postureReminderMinutes": { "type": "number", "default": 50 },
+            "hydrationGoal": { "type": "number", "description": "Daily hydration goal in ml" },
+            "livingActivities": { "type": "array", "items": { "type": "string" } }
           }
         },
         "createdAt": { "type": "string", "format": "date-time" }
