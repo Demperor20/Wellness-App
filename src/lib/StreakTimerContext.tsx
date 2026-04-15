@@ -11,6 +11,8 @@ interface StreakTimerContextType {
   focusShield: boolean;
   postureTimeLeft: number;
   completedGoals: string[];
+  selectedActivity: string | null;
+  activityTimeLeft: number;
   startTimer: (mode: 'work' | 'personal') => void;
   stopTimer: () => void;
   resetTimer: () => void;
@@ -18,6 +20,8 @@ interface StreakTimerContextType {
   toggleFocusShield: () => void;
   addHydration: (amount: number) => void;
   toggleGoalCompletion: (goal: string) => void;
+  setSelectedActivity: (activity: string | null) => void;
+  startActivityTimer: (minutes: number) => void;
   startTransition: () => void;
   formatTime: (seconds: number) => string;
 }
@@ -36,6 +40,8 @@ export function StreakTimerProvider({ children }: { children: React.ReactNode })
   const [focusShield, setFocusShield] = useState(false);
   const [postureTimeLeft, setPostureTimeLeft] = useState(50 * 60);
   const [completedGoals, setCompletedGoals] = useState<string[]>([]);
+  const [selectedActivity, setSelectedActivity] = useState<string | null>(null);
+  const [activityTimeLeft, setActivityTimeLeft] = useState(0);
 
   const startTimer = useCallback((newMode: 'work' | 'personal') => {
     const hours = newMode === 'work' 
@@ -48,6 +54,9 @@ export function StreakTimerProvider({ children }: { children: React.ReactNode })
     setMode(newMode);
     setIsActive(true);
     setPostureTimeLeft((profile?.streakSettings?.postureReminderMinutes || 50) * 60);
+    setCompletedGoals([]);
+    setSelectedActivity(null);
+    setActivityTimeLeft(0);
     
     if ("Notification" in window && Notification.permission === "default") {
       Notification.requestPermission();
@@ -65,6 +74,9 @@ export function StreakTimerProvider({ children }: { children: React.ReactNode })
     setMode('off');
     setTimeLeft(0);
     setTotalDuration(0);
+    setCompletedGoals([]);
+    setSelectedActivity(null);
+    setActivityTimeLeft(0);
   }, []);
 
   const startTransition = useCallback(() => {
@@ -84,6 +96,10 @@ export function StreakTimerProvider({ children }: { children: React.ReactNode })
     );
   };
 
+  const startActivityTimer = (minutes: number) => {
+    setActivityTimeLeft(minutes * 60);
+  };
+
   const sendNotification = useCallback((title: string, body: string) => {
     if ("Notification" in window && Notification.permission === "granted") {
       new Notification(title, { body });
@@ -97,6 +113,17 @@ export function StreakTimerProvider({ children }: { children: React.ReactNode })
       interval = setInterval(() => {
         setTimeLeft((prev) => prev - 1);
         
+        // Activity Timer Logic
+        if (activityTimeLeft > 0) {
+          setActivityTimeLeft(prev => {
+            if (prev <= 1) {
+              sendNotification("Activity Complete", `Your session for ${selectedActivity} is finished.`);
+              return 0;
+            }
+            return prev - 1;
+          });
+        }
+
         // Posture Reminder Logic (only in Work mode and not in Stage Mode)
         if (mode === 'work' && !stageMode) {
           setPostureTimeLeft(prev => {
@@ -130,7 +157,7 @@ export function StreakTimerProvider({ children }: { children: React.ReactNode })
     }
 
     return () => clearInterval(interval);
-  }, [isActive, timeLeft, mode, stageMode, profile, sendNotification]);
+  }, [isActive, timeLeft, mode, stageMode, profile, sendNotification, activityTimeLeft, selectedActivity]);
 
   const formatTime = (seconds: number) => {
     const h = Math.floor(seconds / 3600);
@@ -144,8 +171,9 @@ export function StreakTimerProvider({ children }: { children: React.ReactNode })
   return (
     <StreakTimerContext.Provider value={{ 
       timeLeft, mode, isActive, progress, hydration, stageMode, focusShield, postureTimeLeft,
-      completedGoals, startTimer, stopTimer, resetTimer, toggleStageMode, toggleFocusShield, 
-      addHydration, toggleGoalCompletion, startTransition, formatTime 
+      completedGoals, selectedActivity, activityTimeLeft, startTimer, stopTimer, resetTimer, 
+      toggleStageMode, toggleFocusShield, addHydration, toggleGoalCompletion, 
+      setSelectedActivity, startActivityTimer, startTransition, formatTime 
     }}>
       {children}
     </StreakTimerContext.Provider>

@@ -1,12 +1,21 @@
 import { motion } from "motion/react";
-import { Wind, Sparkles } from "lucide-react";
+import { Wind, Sparkles, XCircle } from "lucide-react";
 import { useStreakTimer } from "../lib/StreakTimerContext";
 
 export default function TransitionView() {
-  const { timeLeft, formatTime } = useStreakTimer();
+  const { timeLeft, formatTime, resetTimer } = useStreakTimer();
 
   return (
     <div className="fixed inset-0 z-[200] bg-brand-500 flex items-center justify-center p-6">
+      <button 
+        onClick={resetTimer}
+        className="absolute top-8 right-8 p-4 text-brand-300 hover:text-brand-50 transition-colors group"
+        title="Skip Transition"
+      >
+        <XCircle className="w-8 h-8" />
+        <span className="sr-only">Skip Transition</span>
+      </button>
+
       <div className="max-w-2xl w-full text-center text-brand-50">
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}

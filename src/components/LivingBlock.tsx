@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { motion } from "motion/react";
+import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "motion/react";
 import { 
   User, 
   Dumbbell, 
@@ -10,12 +10,14 @@ import {
   Dice5,
   Clock,
   XCircle,
-  CheckCircle2
+  CheckCircle2,
+  Play,
+  Timer
 } from "lucide-react";
 import { useStreakTimer } from "../lib/StreakTimerContext";
 import { useAuth } from "../lib/AuthContext";
 
-const activities = [
+const defaultActivities = [
   { id: 'physical', label: 'Physical', icon: Dumbbell, color: 'text-orange-500', bg: 'bg-orange-50' },
   { id: 'connection', label: 'Connection', icon: Users, color: 'text-blue-500', bg: 'bg-blue-50' },
   { id: 'growth', label: 'Growth', icon: BookOpen, color: 'text-purple-500', bg: 'bg-purple-50' },
@@ -31,16 +33,28 @@ export default function LivingBlock() {
     startTransition, 
     resetTimer, 
     completedGoals, 
-    toggleGoalCompletion 
+    toggleGoalCompletion,
+    selectedActivity,
+    setSelectedActivity,
+    activityTimeLeft,
+    startActivityTimer
   } = useStreakTimer();
-  const [suggestedActivity, setSuggestedActivity] = useState<typeof activities[0] | null>(null);
-
-  const rollActivity = () => {
-    const random = activities[Math.floor(Math.random() * activities.length)];
-    setSuggestedActivity(random);
-  };
+  
+  const [isRolling, setIsRolling] = useState(false);
+  const [sessionMinutes, setSessionMinutes] = useState(25);
 
   const personalGoals = profile?.streakSettings?.personalGoals || ["Family Dinner", "30m Reading"];
+  
+  const rollActivity = () => {
+    setIsRolling(true);
+    setTimeout(() => {
+      const random = defaultActivities[Math.floor(Math.random() * defaultActivities.length)];
+      setSelectedActivity(random.label);
+      setIsRolling(false);
+    }, 1000);
+  };
+
+  const currentActivityData = defaultActivities.find(a => a.label === selectedActivity) || defaultActivities[0];
 
   return (
     <div className="space-y-8">
@@ -125,29 +139,75 @@ export default function LivingBlock() {
             <h3 className="text-xl font-serif text-brand-500 mb-6">Activity Selector</h3>
             
             <div className="flex-1 space-y-4">
-              {suggestedActivity ? (
-                <motion.div 
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  className={`p-8 rounded-[2rem] ${suggestedActivity.bg} text-center border border-brand-100`}
-                >
-                  <suggestedActivity.icon className={`w-12 h-12 mx-auto mb-4 ${suggestedActivity.color}`} />
-                  <h4 className={`text-xl font-bold ${suggestedActivity.color}`}>{suggestedActivity.label}</h4>
-                  <p className="text-xs text-brand-950/50 mt-2">Focus on this for the next block of time.</p>
-                </motion.div>
-              ) : (
-                <div className="p-8 rounded-[2rem] bg-brand-50 text-center border border-brand-100 border-dashed">
-                  <p className="text-sm text-brand-400">Need a suggestion for your next activity?</p>
-                </div>
-              )}
+              <AnimatePresence mode="wait">
+                {selectedActivity ? (
+                  <motion.div 
+                    key={selectedActivity}
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.9 }}
+                    className={`p-6 rounded-[2rem] ${currentActivityData.bg} text-center border border-brand-100`}
+                  >
+                    <currentActivityData.icon className={`w-10 h-10 mx-auto mb-3 ${currentActivityData.color}`} />
+                    <h4 className={`text-lg font-bold ${currentActivityData.color}`}>{selectedActivity}</h4>
+                    
+                    {activityTimeLeft > 0 ? (
+                      <div className="mt-4 space-y-2">
+                        <div className="text-2xl font-mono font-bold text-brand-950">{formatTime(activityTimeLeft)}</div>
+                        <div className="w-full h-1.5 bg-white/50 rounded-full overflow-hidden">
+                          <motion.div 
+                            className={`h-full ${currentActivityData.color.replace('text', 'bg')}`}
+                            initial={{ width: '100%' }}
+                            animate={{ width: '0%' }}
+                            transition={{ duration: activityTimeLeft, ease: "linear" }}
+                          />
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="mt-4 space-y-4">
+                        <div className="flex items-center justify-center gap-2">
+                          <input 
+                            type="number" 
+                            value={sessionMinutes}
+                            onChange={(e) => setSessionMinutes(Number(e.target.value))}
+                            className="w-16 bg-white/50 border border-brand-200 rounded-lg px-2 py-1 text-center text-sm font-bold"
+                          />
+                          <span className="text-[10px] font-bold uppercase tracking-widest text-brand-400">Mins</span>
+                        </div>
+                        <button 
+                          onClick={() => startActivityTimer(sessionMinutes)}
+                          className={`w-full flex items-center justify-center gap-2 py-3 rounded-xl text-white font-bold text-xs uppercase tracking-widest transition-all ${currentActivityData.color.replace('text', 'bg')} hover:opacity-90`}
+                        >
+                          <Play className="w-4 h-4" />
+                          Start Session
+                        </button>
+                      </div>
+                    )}
+                    
+                    <button 
+                      onClick={() => toggleGoalCompletion(selectedActivity)}
+                      className={`mt-4 w-full flex items-center justify-center gap-2 py-3 rounded-xl border-2 font-bold text-xs uppercase tracking-widest transition-all ${completedGoals.includes(selectedActivity) ? 'bg-brand-500 border-brand-500 text-white' : 'border-brand-200 text-brand-400 hover:border-brand-500 hover:text-brand-500'}`}
+                    >
+                      <CheckCircle2 className="w-4 h-4" />
+                      {completedGoals.includes(selectedActivity) ? 'Completed' : 'Mark Done'}
+                    </button>
+                  </motion.div>
+                ) : (
+                  <div className="p-8 rounded-[2rem] bg-brand-50 text-center border border-brand-100 border-dashed h-full flex flex-col items-center justify-center">
+                    <Timer className="w-12 h-12 text-brand-200 mb-4" />
+                    <p className="text-sm text-brand-400">Roll for your next activity suggestion</p>
+                  </div>
+                )}
+              </AnimatePresence>
             </div>
 
             <button 
               onClick={rollActivity}
-              className="w-full mt-8 flex items-center justify-center gap-3 bg-brand-500 text-brand-50 py-4 rounded-full font-bold uppercase tracking-widest hover:bg-brand-600 transition-all shadow-lg shadow-brand-500/20"
+              disabled={isRolling}
+              className="w-full mt-8 flex items-center justify-center gap-3 bg-brand-500 text-brand-50 py-4 rounded-full font-bold uppercase tracking-widest hover:bg-brand-600 transition-all shadow-lg shadow-brand-500/20 disabled:opacity-50"
             >
-              <Dice5 className="w-5 h-5" />
-              Roll for Activity
+              <Dice5 className={`w-5 h-5 ${isRolling ? 'animate-spin' : ''}`} />
+              {isRolling ? 'Rolling...' : 'Roll for Activity'}
             </button>
           </div>
 

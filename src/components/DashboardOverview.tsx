@@ -51,7 +51,7 @@ const stats = [
 
 export default function DashboardOverview() {
   const { user, profile } = useAuth();
-  const { timeLeft, mode, isActive, progress, startTimer, stopTimer, formatTime } = useStreakTimer();
+  const { timeLeft, mode, isActive, progress, startTimer, stopTimer, formatTime, completedGoals, toggleGoalCompletion } = useStreakTimer();
   const [showSummary, setShowSummary] = useState(false);
 
   if (mode === 'transition') return <TransitionView />;
@@ -278,23 +278,64 @@ export default function DashboardOverview() {
         <div className="bg-brand-500 p-8 rounded-[3rem] text-brand-50 relative overflow-hidden h-fit">
           <div className="relative z-10">
             <h3 className="text-xl font-serif mb-6">Today's Protocol</h3>
-            <div className="space-y-4">
-              {[
-                "20m Morning Sunlight",
-                "High-Intensity Interval Training",
-                "Magnesium Supplementation",
-                "10m Cold Exposure"
-              ].map((task, i) => (
-                <div key={i} className="flex items-center gap-4 bg-brand-600/50 p-4 rounded-2xl border border-brand-400/30">
-                  <div className="w-5 h-5 rounded-full border-2 border-brand-300 flex items-center justify-center">
-                    <div className="w-2 h-2 rounded-full bg-brand-300 opacity-0 group-hover:opacity-100 transition-opacity" />
-                  </div>
-                  <span className="text-sm font-medium">{task}</span>
+            
+            <div className="space-y-6">
+              {/* Work Segment */}
+              <div>
+                <div className="flex items-center gap-2 mb-3">
+                  <Briefcase className="w-4 h-4 text-brand-300" />
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-brand-300">Phase A: Work Engine</span>
                 </div>
-              ))}
+                <div className="space-y-2">
+                  {(profile?.streakSettings?.workGoals || ["Deep Work", "Strategic Planning"]).map((goal: string, i: number) => {
+                    const isCompleted = completedGoals.includes(goal);
+                    return (
+                      <div 
+                        key={i} 
+                        onClick={() => toggleGoalCompletion(goal)}
+                        className={`flex items-center gap-3 p-3 rounded-xl border transition-all cursor-pointer ${isCompleted ? 'bg-brand-600 border-brand-400' : 'bg-brand-600/30 border-brand-400/20 hover:border-brand-300'}`}
+                      >
+                        <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${isCompleted ? 'bg-brand-300 border-brand-300' : 'border-brand-300'}`}>
+                          {isCompleted && <CheckCircle2 className="w-3 h-3 text-brand-500" />}
+                        </div>
+                        <span className={`text-xs font-medium ${isCompleted ? 'text-brand-100 line-through opacity-70' : 'text-brand-50'}`}>{goal}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Personal Segment */}
+              <div>
+                <div className="flex items-center gap-2 mb-3">
+                  <Coffee className="w-4 h-4 text-brand-300" />
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-brand-300">Phase B: Living Block</span>
+                </div>
+                <div className="space-y-2">
+                  {(profile?.streakSettings?.personalGoals || ["Family Dinner", "30m Reading"]).map((goal: string, i: number) => {
+                    const isCompleted = completedGoals.includes(goal);
+                    return (
+                      <div 
+                        key={i} 
+                        onClick={() => toggleGoalCompletion(goal)}
+                        className={`flex items-center gap-3 p-3 rounded-xl border transition-all cursor-pointer ${isCompleted ? 'bg-brand-600 border-brand-400' : 'bg-brand-600/30 border-brand-400/20 hover:border-brand-300'}`}
+                      >
+                        <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${isCompleted ? 'bg-brand-300 border-brand-300' : 'border-brand-300'}`}>
+                          {isCompleted && <CheckCircle2 className="w-3 h-3 text-brand-500" />}
+                        </div>
+                        <span className={`text-xs font-medium ${isCompleted ? 'text-brand-100 line-through opacity-70' : 'text-brand-50'}`}>{goal}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
-            <button className="w-full mt-8 bg-brand-50 text-brand-500 py-4 rounded-full text-sm font-bold uppercase tracking-widest hover:bg-brand-100 transition-all">
-              View All Tasks
+
+            <button 
+              onClick={() => setShowSummary(true)}
+              className="w-full mt-8 bg-brand-50 text-brand-500 py-4 rounded-full text-sm font-bold uppercase tracking-widest hover:bg-brand-100 transition-all"
+            >
+              View Full Summary
             </button>
           </div>
           <div className="absolute top-0 right-0 w-64 h-64 bg-brand-400/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
