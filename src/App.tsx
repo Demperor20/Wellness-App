@@ -10,6 +10,7 @@ import Footer from "./components/Footer";
 import Onboarding from "./components/Onboarding";
 import Dashboard from "./components/Dashboard";
 import { AuthProvider, useAuth } from "./lib/AuthContext";
+import { StreakTimerProvider } from "./lib/StreakTimerContext";
 
 function AppContent() {
   const { user, profile, loading, signInWithGoogle } = useAuth();
@@ -70,7 +71,9 @@ function AppContent() {
 export default function App() {
   return (
     <AuthProvider>
-      <AppContent />
+      <StreakTimerProvider>
+        <AppContent />
+      </StreakTimerProvider>
     </AuthProvider>
   );
 }

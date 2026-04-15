@@ -25,7 +25,7 @@ export default function Sidebar({ activeTab, setActiveTab }: SidebarProps) {
   ];
 
   return (
-    <aside className="w-72 bg-white border-r border-brand-200 h-screen sticky top-0 flex flex-direction-column p-8">
+    <aside className="w-full lg:w-72 bg-white lg:border-r border-brand-200 h-full lg:h-screen sticky top-0 flex flex-col p-8">
       <div className="mb-12">
         <div className="text-2xl font-serif font-bold tracking-tight text-brand-500">
           vitality<span className="text-brand-300">.</span>

@@ -17,9 +17,14 @@ import {
   Heart,
   Calendar,
   ArrowUpRight,
-  ArrowDownRight
+  ArrowDownRight,
+  Play,
+  Square,
+  Coffee,
+  Briefcase
 } from "lucide-react";
 import { useAuth } from "../lib/AuthContext";
+import { useStreakTimer } from "../lib/StreakTimerContext";
 
 const data = [
   { name: 'Mon', score: 82, recovery: 75 },
@@ -40,27 +45,93 @@ const stats = [
 
 export default function DashboardOverview() {
   const { user, profile } = useAuth();
+  const { timeLeft, mode, isActive, progress, startTimer, stopTimer, formatTime } = useStreakTimer();
 
   return (
     <div className="space-y-12">
       {/* Header */}
-      <div className="flex justify-between items-end">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
         <div>
-          <h1 className="text-4xl font-serif text-brand-500 mb-2">
+          <h1 className="text-3xl md:text-4xl font-serif text-brand-500 mb-2">
             Welcome back, <span className="serif-italic">{user?.displayName?.split(' ')[0] || 'Seeker'}</span>
           </h1>
-          <p className="text-brand-950/50 uppercase tracking-widest text-xs font-bold">
+          <p className="text-brand-950/50 uppercase tracking-widest text-[10px] md:text-xs font-bold">
             Your {profile?.vitalityGoal} journey is progressing optimally
           </p>
         </div>
-        <div className="flex items-center gap-3 bg-white px-4 py-2 rounded-full border border-brand-200 shadow-sm">
+        <div className="flex items-center gap-3 bg-white px-4 py-2 rounded-full border border-brand-200 shadow-sm w-full md:w-auto justify-center">
           <Calendar className="w-4 h-4 text-brand-400" />
           <span className="text-xs font-bold text-brand-950 uppercase tracking-wider">April 15, 2024</span>
         </div>
       </div>
 
+      {/* Timer Section */}
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="bg-brand-500 rounded-[2rem] md:rounded-[3rem] p-6 md:p-10 text-brand-50 relative overflow-hidden shadow-xl shadow-brand-500/20"
+      >
+        <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
+          <div className="flex items-center gap-6">
+            <div className="w-24 h-24 md:w-32 md:h-32 rounded-full border-4 border-brand-400/30 flex items-center justify-center relative">
+              <svg className="absolute inset-0 w-full h-full -rotate-90">
+                <circle
+                  cx="50%"
+                  cy="50%"
+                  r="45%"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                  className="text-brand-300"
+                  strokeDasharray="283"
+                  strokeDashoffset={283 - (283 * progress) / 100}
+                  style={{ transition: 'stroke-dashoffset 1s linear' }}
+                />
+              </svg>
+              <div className="text-xl md:text-2xl font-bold font-mono">{formatTime(timeLeft)}</div>
+            </div>
+            <div>
+              <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-brand-300 mb-1">Current Streak Mode</div>
+              <h2 className="text-2xl md:text-3xl font-serif capitalize">
+                {mode === 'off' ? 'Ready to Start' : `${mode} Mode`}
+              </h2>
+            </div>
+          </div>
+
+          <div className="flex gap-4 w-full md:w-auto">
+            {isActive ? (
+              <button 
+                onClick={stopTimer}
+                className="flex-1 md:flex-none flex items-center justify-center gap-3 bg-white text-brand-500 px-8 py-4 rounded-full font-bold uppercase tracking-widest hover:bg-brand-100 transition-all"
+              >
+                <Square className="w-4 h-4 fill-current" />
+                Stop
+              </button>
+            ) : (
+              <>
+                <button 
+                  onClick={() => startTimer('work')}
+                  className="flex-1 md:flex-none flex items-center justify-center gap-3 bg-brand-600 text-brand-50 px-6 py-4 rounded-full font-bold uppercase tracking-widest hover:bg-brand-700 transition-all border border-brand-400/30"
+                >
+                  <Briefcase className="w-4 h-4" />
+                  Work
+                </button>
+                <button 
+                  onClick={() => startTimer('personal')}
+                  className="flex-1 md:flex-none flex items-center justify-center gap-3 bg-brand-300 text-brand-950 px-6 py-4 rounded-full font-bold uppercase tracking-widest hover:bg-brand-400 transition-all"
+                >
+                  <Coffee className="w-4 h-4" />
+                  Personal
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+        <div className="absolute top-0 right-0 w-64 h-64 bg-brand-400/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+      </motion.div>
+
       {/* Stats Grid */}
-      <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
         {stats.map((stat, i) => (
           <motion.div
             key={i}
