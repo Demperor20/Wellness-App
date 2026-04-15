@@ -20,7 +20,25 @@
             "personalGoals": { "type": "array", "items": { "type": "string" } },
             "postureReminderMinutes": { "type": "number", "default": 50 },
             "hydrationGoal": { "type": "number", "description": "Daily hydration goal in ml" },
-            "livingActivities": { "type": "array", "items": { "type": "string" } }
+            "livingActivities": { "type": "array", "items": { "type": "string" } },
+            "socialUsage": {
+              "type": "object",
+              "properties": {
+                "facebook": { "type": "number", "default": 0 },
+                "instagram": { "type": "number", "default": 0 },
+                "twitter": { "type": "number", "default": 0 },
+                "whatsapp": { "type": "number", "default": 0 }
+              }
+            },
+            "socialConnections": {
+              "type": "object",
+              "properties": {
+                "facebook": { "type": "boolean", "default": false },
+                "instagram": { "type": "boolean", "default": false },
+                "twitter": { "type": "boolean", "default": false },
+                "whatsapp": { "type": "boolean", "default": false }
+              }
+            }
           }
         },
         "createdAt": { "type": "string", "format": "date-time" }

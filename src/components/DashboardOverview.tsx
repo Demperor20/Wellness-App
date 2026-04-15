@@ -23,7 +23,13 @@ import {
   Square,
   Coffee,
   Briefcase,
-  CheckCircle2
+  CheckCircle2,
+  Facebook,
+  Instagram,
+  Twitter,
+  MessageCircle,
+  Plus,
+  Minus
 } from "lucide-react";
 import { useAuth } from "../lib/AuthContext";
 import { useStreakTimer } from "../lib/StreakTimerContext";
@@ -50,9 +56,25 @@ const stats = [
 ];
 
 export default function DashboardOverview() {
-  const { user, profile } = useAuth();
+  const { user, profile, updateProfile } = useAuth();
   const { timeLeft, mode, isActive, progress, startTimer, stopTimer, formatTime, completedGoals, toggleGoalCompletion } = useStreakTimer();
   const [showSummary, setShowSummary] = useState(false);
+
+  const socialUsage = profile?.streakSettings?.socialUsage || { facebook: 0, instagram: 0, twitter: 0, whatsapp: 0 };
+  const socialConnections = profile?.streakSettings?.socialConnections || {};
+
+  const updateSocialTime = async (platform: string, delta: number) => {
+    const newTime = Math.max(0, (socialUsage[platform as keyof typeof socialUsage] || 0) + delta);
+    await updateProfile({
+      streakSettings: {
+        ...profile.streakSettings,
+        socialUsage: {
+          ...socialUsage,
+          [platform]: newTime
+        }
+      }
+    });
+  };
 
   if (mode === 'transition') return <TransitionView />;
 
@@ -339,6 +361,61 @@ export default function DashboardOverview() {
             </button>
           </div>
           <div className="absolute top-0 right-0 w-64 h-64 bg-brand-400/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+        </div>
+
+        {/* Social Usage Tracker */}
+        <div className="bg-white p-8 rounded-[3rem] border border-brand-200 shadow-sm">
+          <h3 className="text-xl font-serif text-brand-500 mb-6">Digital Vitality</h3>
+          <div className="space-y-4">
+            {[
+              { id: 'facebook', label: 'Facebook', icon: Facebook, color: 'text-blue-600', bg: 'bg-blue-50' },
+              { id: 'instagram', label: 'Instagram', icon: Instagram, color: 'text-pink-600', bg: 'bg-pink-50' },
+              { id: 'twitter', label: 'Twitter', icon: Twitter, color: 'text-sky-500', bg: 'bg-sky-50' },
+              { id: 'whatsapp', label: 'WhatsApp', icon: MessageCircle, color: 'text-green-500', bg: 'bg-green-50' },
+            ].map((platform) => {
+              const isConnected = socialConnections[platform.id];
+              const time = socialUsage[platform.id as keyof typeof socialUsage] || 0;
+              
+              return (
+                <div key={platform.id} className={`p-4 rounded-2xl border transition-all ${isConnected ? 'bg-white border-brand-100' : 'bg-brand-50/50 border-transparent opacity-50 grayscale'}`}>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className={`p-2 rounded-xl ${platform.bg} ${platform.color}`}>
+                        <platform.icon className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <div className="text-xs font-bold text-brand-950">{platform.label}</div>
+                        <div className="text-[10px] font-bold text-brand-400 uppercase tracking-widest">
+                          {isConnected ? `${time} Minutes Today` : 'Not Connected'}
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {isConnected && (
+                      <div className="flex items-center gap-2">
+                        <button 
+                          onClick={() => updateSocialTime(platform.id, -15)}
+                          className="p-1.5 rounded-lg hover:bg-brand-50 text-brand-400 transition-colors"
+                        >
+                          <Minus className="w-4 h-4" />
+                        </button>
+                        <button 
+                          onClick={() => updateSocialTime(platform.id, 15)}
+                          className="p-1.5 rounded-lg hover:bg-brand-50 text-brand-400 transition-colors"
+                        >
+                          <Plus className="w-4 h-4" />
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          <p className="mt-6 text-[10px] text-brand-400 text-center italic leading-relaxed">
+            Connect accounts in Settings to enable tracking. <br />
+            Adjust time manually to maintain your digital protocol.
+          </p>
         </div>
       </div>
     </div>

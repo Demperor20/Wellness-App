@@ -12,7 +12,8 @@ import {
   XCircle,
   CheckCircle2,
   Play,
-  Timer
+  Timer,
+  Sparkles
 } from "lucide-react";
 import { useStreakTimer } from "../lib/StreakTimerContext";
 import { useAuth } from "../lib/AuthContext";
@@ -44,17 +45,29 @@ export default function LivingBlock() {
   const [sessionMinutes, setSessionMinutes] = useState(25);
 
   const personalGoals = profile?.streakSettings?.personalGoals || ["Family Dinner", "30m Reading"];
+  const customActivities = profile?.streakSettings?.livingActivities || [];
+  
+  const allActivities = [
+    ...defaultActivities,
+    ...customActivities.map((label: string) => ({
+      id: label.toLowerCase().replace(/\s+/g, '-'),
+      label,
+      icon: Sparkles,
+      color: 'text-brand-500',
+      bg: 'bg-brand-50'
+    }))
+  ];
   
   const rollActivity = () => {
     setIsRolling(true);
     setTimeout(() => {
-      const random = defaultActivities[Math.floor(Math.random() * defaultActivities.length)];
+      const random = allActivities[Math.floor(Math.random() * allActivities.length)];
       setSelectedActivity(random.label);
       setIsRolling(false);
     }, 1000);
   };
 
-  const currentActivityData = defaultActivities.find(a => a.label === selectedActivity) || defaultActivities[0];
+  const currentActivityData = allActivities.find(a => a.label === selectedActivity) || allActivities[0];
 
   return (
     <div className="space-y-8">
