@@ -1,8 +1,8 @@
 const CACHE_NAME = 'vitality-streak-v1';
 const assets = [
-  '/',
-  '/index.html',
-  '/manifest.json'
+  './',
+  'index.html',
+  'manifest.json'
 ];
 
 self.addEventListener('install', event => {
